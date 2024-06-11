@@ -35,10 +35,10 @@ const Login = () => {
         <form>
             <h1>Acesse o sistema</h1>
             <div className={styles.input_field}>
-                <input type="email" placeholder="E-mail" value={email} onChange={(e) =>[setEmail(e.target.value), setError("")]}></input>
+                <input type="email" placeholder="E-mail" required value={email} onChange={(e) =>[setEmail(e.target.value), setError("")]}></input>
             </div>
             <div className={styles.input_field}>
-                <input type="password" placeholder="Senha" value={senha} onChange={(e) => [setSenha(e.target.value), setError("")]}></input>
+                <input type="password" placeholder="Senha" required value={senha} onChange={(e) => [setSenha(e.target.value), setError("")]}></input>
             </div>
 
             <div className={styles.recall_forget}>
