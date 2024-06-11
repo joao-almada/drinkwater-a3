@@ -39,13 +39,13 @@ const Cadastro = () => {
             <form>
                 <h1>Meu cadastro</h1>
                 <div className={styles.input_field}>
-                    <input type="email" placeholder="E-mail" value={email} onChange={(e) => [setEmail(e.target.value), setError("")]}></input>
+                    <input type="email" placeholder="E-mail" required value={email} onChange={(e) => [setEmail(e.target.value), setError("")]}></input>
                 </div>
                 <div className={styles.input_field}>
-                    <input type="email" placeholder="Confirme seu E-mail" value={emailConf} onChange={(e) => [setEmailConf(e.target.value), setError("")]}></input>
+                    <input type="email" placeholder="Confirme seu E-mail" required value={emailConf} onChange={(e) => [setEmailConf(e.target.value), setError("")]}></input>
                 </div>
                 <div className={styles.input_field}>
-                    <input type="password" placeholder="Confirme sua senha" value={senha} onChange={(e) => [setSenha(e.target.value), setError("")]}></input>
+                    <input type="password" placeholder="Digite sua senha" required value={senha} onChange={(e) => [setSenha(e.target.value), setError("")]}></input>
                 </div>
 
 
