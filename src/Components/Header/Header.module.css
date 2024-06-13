@@ -45,3 +45,22 @@
     color: rgb(83, 162, 207);
     transform: scale(1.2);
 }
+
+@media screen and (max-width: 768px) {
+    .topo {
+        flex-direction: column;
+    }
+
+    .logo {
+        margin-left: 0;
+        text-align: center;
+    }
+
+    .navegacao {
+        margin: 10px 0;
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-around;
+    }
+}
