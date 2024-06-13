@@ -137,3 +137,14 @@ button:active {
 #button_water_all {
   margin: 10px;
 }
+
+@media (max-width: 768px) {
+  .App2 {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .register_water, .contador_agua, .calculator_water {
+    width: 90%;
+  }
+}
