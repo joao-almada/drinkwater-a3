@@ -32,7 +32,7 @@ const Chat = () => {
         {
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer sk-proj-BeLCcsciWSQQMREh7FPyT3BlbkFJ2v3SwXYoxJvJiLd0OcWU`,
+            'Authorization': `Bearer`,
           },
         }
       );
