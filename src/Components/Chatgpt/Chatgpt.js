@@ -1,49 +1,79 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import axios from 'axios';
+import { throttle } from 'lodash';
 import styles from './Chatgpt.module.css';
 
 const Chat = () => {
   const [messages, setMessages] = useState([]);
   const [inputText, setInputText] = useState('');
+  const [isSending, setIsSending] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
 
   const handleSendMessage = async (e) => {
-    e.preventDefault(); // Evita o recarregamento da página
+    e.preventDefault();
     if (inputText.trim() === '') return;
-
-    // Adiciona a mensagem do usuário
+    if (isSending) return;
+    setIsSending(true);
     const newMessages = [...messages, { text: inputText, user: true }];
     setMessages(newMessages);
 
-    // Chame a API do ChatGPT com a mensagem do usuário
-    try {
-      const response = await axios.post(
-        'https://api.openai.com/v1/chat/completions',
-        {
-          model: 'gpt-3.5-turbo', // ou 'gpt-4' dependendo do modelo que você tem acesso
-          messages: [
-            { role: 'system', content: 'Você é um assistente útil.' },
-            ...newMessages.map(msg => ({
-              role: msg.user ? 'user' : 'assistant',
-              content: msg.text
-            }))
-          ],
-          max_tokens: 50, // Limite o tamanho da resposta
-        },
-        {
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer`,
-          },
-        }
-      );
-
-      const chatResponse = response.data.choices[0].message.content.trim();
-      setMessages([...newMessages, { text: chatResponse, user: false }]);
+    const cachedResponse = localStorage.getItem(inputText);
+    if (cachedResponse) {
+      setMessages([...newMessages, { text: cachedResponse, user: false }]);
       setInputText('');
-    } catch (error) {
-      console.error('Erro ao chamar a API do ChatGPT:', error);
+      setIsSending(false);
+      return;
     }
+
+    const sendRequest = async (retryCount = 0) => {
+      try {
+        const response = await axios.post(
+          'https://api.openai.com/v1/chat/completions',
+          {
+            model: 'gpt-3.5-turbo',
+            messages: [
+              { role: 'system', content: 'Você é um assistente útil.' },
+              ...newMessages.map(msg => ({
+                role: msg.user ? 'user' : 'assistant',
+                content: msg.text
+              }))
+            ],
+            max_tokens: 50,
+          },
+          {
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${process.env.REACT_APP_OPENAI_API_KEY}`
+            },
+          }
+        );
+
+        const chatResponse = response.data.choices[0].message.content.trim();
+        localStorage.setItem(inputText, chatResponse);  // Cache the response
+        setMessages([...newMessages, { text: chatResponse, user: false }]);
+        setInputText('');
+        setIsSending(false);
+      } catch (error) {
+        if (error.response && error.response.status === 429) {
+          if (retryCount < 3) {
+            const delay = Math.pow(2, retryCount) * 10000;
+            console.warn(`Retrying request in ${delay}ms...`);
+            setTimeout(() => sendRequest(retryCount + 1), delay);
+          } else {
+            console.error('Reached maximum retry limit. Error:', error.response ? error.response.data : error.message);
+            setIsSending(false);
+          }
+        } else {
+          console.error('Erro ao chamar a API do ChatGPT:', error.response ? error.response.data : error.message);
+          setIsSending(false);
+        }
+      }
+    };
+
+    sendRequest();
   };
+
+  const throttledHandleSendMessage = useCallback(throttle(handleSendMessage, 10000), [inputText, messages]);
 
   return (
     <div className={styles.main}>
@@ -54,7 +84,7 @@ const Chat = () => {
           </div>
         ))}
       </div>
-      <form onSubmit={handleSendMessage} className={styles.form}>
+      <form onSubmit={throttledHandleSendMessage} className={styles.form}>
         <input
           type="text"
           value={inputText}
@@ -62,7 +92,7 @@ const Chat = () => {
           placeholder="Digite sua mensagem..."
           className={styles.input}
         />
-        <button type="submit" className={styles.button}>Enviar</button>
+        <button type="submit" className={styles.button} disabled={isSending}>Enviar</button>
       </form>
     </div>
   );
